@@ -15,10 +15,24 @@ import {
   historiqueMouvements,
   historiqueProduit,
   modifierProduit,
-  supprimerProduit
+  supprimerProduit,
+  // Nouveaux imports
+  listeEntrees,
+  listeSorties,
+  showModifierMouvement,
+  modifierMouvement,
+  supprimerMouvement
 } from "../controllers/produitController.js";
 
 const router = express.Router();
+
+/* --- NOUVEAU : Routes pour les mouvements de stock --- */
+router.get("/mouvements/entrees", listeEntrees);
+router.get("/mouvements/sorties", listeSorties);
+router.get("/mouvements/modifier/:id", showModifierMouvement);
+router.post("/mouvements/modifier/:id", modifierMouvement);
+router.post("/mouvements/supprimer/:id", supprimerMouvement);
+
 
 // Routes pour les produits
 router.get("/", listeProduits);

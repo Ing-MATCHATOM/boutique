@@ -782,11 +782,11 @@
           </div>
           <div class="payment-field">
             <label for="montantDonne">Montant donné</label>
-            <input type="number" step="0.01" min="0" id="montantDonne" class="small" placeholder="0.00">
+            <input type="number" step="0.01" min="0" id="montantDonne" name="montant_donne" class="small" placeholder="0.00">
           </div>
           <div class="payment-field">
             <label for="montantAPayer">Montant à payer</label>
-            <input type="number" step="0.01" min="0" id="montantAPayer" class="small" placeholder="0.00">
+            <input type="number" step="0.01" min="0" id="montantAPayer" name="montant_paye" class="small" placeholder="0.00">
           </div>
         </div>
         
@@ -858,6 +858,7 @@
   </div>
 
   <script>
+    console.log("Script vente.ejs starting");
     (function(){
       const qs = s => document.querySelector(s);
       const qsa = s => Array.from(document.querySelectorAll(s));
@@ -929,7 +930,11 @@
         
         // Mettre à jour le montant total pour le reçu
         montantTotal.value = format(totalTTC);
-        montantAPayer.value = format(totalTTC);
+        
+        // Initialiser le montant à payer avec le total TTC si vide
+        if (!montantAPayer.value || parseFloat(montantAPayer.value) === 0) {
+          montantAPayer.value = format(totalTTC);
+        }
 
         rebuildHiddenInputs();
       }
@@ -937,13 +942,15 @@
       function rebuildHiddenInputs(){
         hiddenInputs.innerHTML = '';
 
+        console.log("=== DEBUG rebuildHiddenInputs ===");
+        console.log("Montant donné:", montantDonne.value);
+        console.log("Montant à payer:", montantAPayer.value);
+
         cart.forEach((l, idx) => {
-          // CORRECTION : Utiliser les bons noms de champs
           const fields = {
             produit_id: l.produit_id,
-            quantite: l.qty,        // 'quantite' au lieu de 'qty'
+            quantite: l.qty,
             prix_vente: l.prix_vente
-            // Supprimer les champs inutiles
           };
           
           Object.entries(fields).forEach(([field, value]) => {
@@ -953,21 +960,11 @@
             inp.value = value;
             hiddenInputs.appendChild(inp);
           });
-        })
-        const totalPaiements = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
-        // Après rebuildHiddenInputs(), ajoutez :
-        const montantPayeInput = document.createElement('input');
-        montantPayeInput.type = 'hidden';
-        montantPayeInput.name = 'montant_paye';
-        montantPayeInput.value = payments.reduce((sum, p) => sum + p.amount, 0);
-        hiddenInputs.appendChild(montantPayeInput);
+        });
 
-        const modePaiementInput = document.createElement('input');
-        modePaiementInput.type = 'hidden';
-        modePaiementInput.name = 'mode_paiement';
-        modePaiementInput.value = payments.length > 0 ? payments[0].mode : 'cash';
-        hiddenInputs.appendChild(modePaiementInput);
-
+        // Les champs montant_donne et montant_paye sont déjà dans le formulaire
+        // avec les attributs "name", donc pas besoin de les recréer
+        
         const inpTotal = document.createElement('input');
         inpTotal.type='hidden'; inpTotal.name='total'; inpTotal.value=totalEl.textContent;
         hiddenInputs.appendChild(inpTotal);
@@ -1105,25 +1102,36 @@
         });
       }
 
-      // Calculer le paiement - CORRECTION DE LA LOGIQUE
+      // Calculer le paiement
       btnCalculerPaiement.addEventListener('click', () => {
         const totalAPayer = parseFloat(montantTotal.value || 0);
         const donne = parseFloat(montantDonne.value || 0);
         const aPayer = parseFloat(montantAPayer.value || 0);
         
-        // Calculer le reste à payer (différence entre total à payer et montant à payer)
-        const resteAPayer = totalAPayer - aPayer;
+        // Le montant payé ne peut pas dépasser le total
+        const montantPayeEffectif = Math.min(aPayer, totalAPayer);
         
-        // Calculer la monnaie à rendre (différence entre montant donné et montant à payer)
-        const monnaieARendre = donne - aPayer;
+        // Calculer le reste à payer
+        const resteAPayer = totalAPayer - montantPayeEffectif;
         
+        // Calculer la monnaie à rendre
+        const monnaieARendre = Math.max(0, donne - montantPayeEffectif);
+        
+        console.log("=== DEBUG Calcul Paiement ===");
+        console.log("Total à payer:", totalAPayer);
+        console.log("Montant donné:", donne);
+        console.log("Montant à payer saisi:", aPayer);
+        console.log("Montant payé effectif:", montantPayeEffectif);
+        console.log("Reste à payer:", resteAPayer);
+        console.log("Monnaie à rendre:", monnaieARendre);
+
         if (resteAPayer > 0) {
           // Il reste de l'argent à payer
-          paymentResult.textContent = `Reste à payer: ${format(resteAPayer)}`;
+          paymentResult.textContent = `Paiement partiel! Reste à payer: ${format(resteAPayer)}`;
           paymentResult.className = 'payment-result reste';
         } else if (monnaieARendre > 0) {
           // Monnaie à rendre
-          paymentResult.textContent = `Monnaie à rendre: ${format(monnaieARendre)}`;
+          paymentResult.textContent = `Paiement complet! Monnaie à rendre: ${format(monnaieARendre)}`;
           paymentResult.className = 'payment-result monnaie';
         } else {
           // Paiement exact
@@ -1132,9 +1140,12 @@
           paymentResult.style.borderColor = '#3498db';
           paymentResult.style.color = '#3498db';
         }
+        
+        // Mettre à jour le montant à payer avec la valeur corrigée
+        montantAPayer.value = format(montantPayeEffectif);
       });
 
-      // Imprimer le reçu - CORRECTION DE LA LOGIQUE
+      // Imprimer le reçu
       btnImprimerRecu.addEventListener('click', () => {
         if (cart.length === 0) {
           alert("Aucun produit dans le panier");
@@ -1150,9 +1161,9 @@
         const donne = parseFloat(montantDonne.value || 0);
         const aPayer = parseFloat(montantAPayer.value || 0);
         
-        // Calculs corrigés
-        const resteAPayer = totalAPayer - aPayer;
-        const monnaieARendre = donne - aPayer;
+        const montantPayeEffectif = Math.min(aPayer, totalAPayer);
+        const resteAPayer = totalAPayer - montantPayeEffectif;
+        const monnaieARendre = Math.max(0, donne - montantPayeEffectif);
         
         // Masquer la section dette par défaut
         receiptDette.style.display = 'none';
@@ -1218,12 +1229,17 @@
         if(!qs('#client_id').value){ alert('Choisir un client'); e.preventDefault(); return; }
         if(cart.length===0){ alert('Ajoutez au moins un produit'); e.preventDefault(); return; }
         
-        // Enregistrer la dette si paiement partiel
+        // Validation finale
         const totalAPayer = parseFloat(montantTotal.value || 0);
         const aPayer = parseFloat(montantAPayer.value || 0);
+        const montantPayeEffectif = Math.min(aPayer, totalAPayer);
+        const dette = totalAPayer - montantPayeEffectif;
         
-        if (aPayer < totalAPayer) {
-          const dette = totalAPayer - aPayer;
+        console.log("=== FINAL SUBMIT ===");
+        console.log("Montant payé qui sera envoyé:", montantPayeEffectif);
+        console.log("Dette:", dette);
+        
+        if (dette > 0) {
           if (!confirm(`Le client a une dette de ${format(dette)}. Confirmer l'enregistrement ?`)) {
             e.preventDefault();
             return;

@@ -26,3 +26,22 @@ export async function getClientById(id) {
 
   return rows[0];
 }
+
+// --- Mettre à jour un client ---
+export async function updateClient(id, clientData) {
+  const { nom, telephone, email, adresse } = clientData;
+  const [result] = await pool.execute(
+    "UPDATE client SET nom = ?, telephone = ?, email = ?, adresse = ? WHERE id_client = ?",
+    [nom, telephone, email, adresse, id]
+  );
+  return result.affectedRows;
+}
+
+// --- Supprimer un client ---
+export async function deleteClient(id) {
+  const [result] = await pool.execute(
+    "DELETE FROM client WHERE id_client = ?",
+    [id]
+  );
+  return result.affectedRows;
+}

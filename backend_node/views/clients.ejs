@@ -255,6 +255,7 @@
             <th>Téléphone</th>
             <th>Email</th>
             <th>Adresse</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -265,6 +266,16 @@
               <td><%= client.telephone %></td>
               <td><%= client.email %></td>
               <td><%= client.adresse %></td>
+              <td class="actions">
+                <a href="/clients/modifier/<%= client.id_client %>" class="btn btn-sm btn-warning">
+                  <span class="btn-icon">✏️</span> Modifier
+                </a>
+                <form action="/clients/supprimer/<%= client.id_client %>?_method=DELETE" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce client ?');" style="display: inline;">
+                  <button type="submit" class="btn btn-sm btn-danger">
+                    <span class="btn-icon">🗑️</span> Supprimer
+                  </button>
+                </form>
+              </td>
             </tr>
           <% }) %>
         </tbody>
@@ -288,6 +299,9 @@
       const tableRows = document.querySelectorAll('tbody tr');
       tableRows.forEach(row => {
         row.addEventListener('click', function() {
+          // Ne pas déclencher sur les boutons
+          if (event.target.closest('a, button')) return;
+          
           this.style.backgroundColor = 'rgba(52, 152, 219, 0.1)';
           setTimeout(() => {
             this.style.backgroundColor = '';

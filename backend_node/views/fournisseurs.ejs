@@ -387,13 +387,13 @@
                   <%= fournisseur.pays %>
                 </td>
                 <td class="actions-cell">
-                  <button onclick="openEditModal(<%= JSON.stringify(fournisseur).replace(/"/g, '&quot;') %>)" 
-                          class="btn btn-warning btn-small">
+                  <button data-fournisseur='<%= JSON.stringify(fournisseur) %>' 
+                          class="btn btn-warning btn-small edit-btn">
                     <span class="btn-icon">✏️</span>
                     Modifier
                   </button>
-                  <button onclick="openDeleteModal(<%= fournisseur.id_fournisseur %>, '<%= fournisseur.nom.replace(/'/g, "\\'") %>')" 
-                          class="btn btn-danger btn-small">
+                  <button data-id="<%= fournisseur.id_fournisseur %>" data-nom="<%= fournisseur.nom.replace(/'/g, `\\'`) %>"
+                          class="btn btn-danger btn-small delete-btn">
                     <span class="btn-icon">🗑️</span>
                     Supprimer
                   </button>
@@ -485,135 +485,109 @@
   </div>
 
 <script>
-    // ⭐ DÉPLACEZ TOUT CE SCRIPT ICI, À LA FIN DU BODY
-    
-    console.log("=== TEST JAVASCRIPT ===");
-    console.log("✅ Le JavaScript est chargé !");
-    console.log("📍 URL actuelle:", window.location.href);
+document.addEventListener('DOMContentLoaded', function() {
+    const editModal = document.getElementById('editModal');
+    const deleteModal = document.getElementById('deleteModal');
+    const editForm = document.getElementById('editForm');
+    const deleteForm = document.getElementById('deleteForm');
+    const deleteModalText = document.getElementById('deleteModalText');
 
-    // Test des fonctions
-    console.log("🔍 Test fonction openEditModal:", typeof openEditModal);
-    console.log("🔍 Test fonction openDeleteModal:", typeof openDeleteModal);
+    // --- Gestion du Modal de Modification ---
 
-    // Test des boutons
-    const buttons = document.querySelectorAll('button');
-    console.log("🔘 Nombre de boutons trouvés:", buttons.length);
-
-    // Vérifier si les boutons Modifier existent
-    const editButtons = document.querySelectorAll('.btn-warning');
-    console.log("✏️ Boutons Modifier trouvés:", editButtons.length);
-
-    editButtons.forEach((btn, index) => {
-        console.log(`Bouton ${index + 1}:`, btn.textContent);
-        btn.addEventListener('click', function() {
-            console.log("🎯 Bouton cliqué!", this.textContent);
+    // Ouvrir le modal de modification
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const fournisseur = JSON.parse(this.getAttribute('data-fournisseur'));
+            
+            // Définir l'action du formulaire
+            editForm.action = `/fournisseurs/modifier/${fournisseur.id_fournisseur}`;
+            
+            // Remplir les champs du formulaire
+            editForm.nom.value = fournisseur.nom || '';
+            editForm.telephone.value = fournisseur.telephone || '';
+            editForm.email.value = fournisseur.email || '';
+            editForm.pays.value = fournisseur.pays || '';
+            
+            // Afficher le modal
+            editModal.style.display = 'block';
         });
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log("✅ DOM entièrement chargé");
-        
-        const navItems = document.querySelectorAll('.nav-item');
-        console.log("📌 Items de navigation:", navItems.length);
-        
-        navItems.forEach(item => {
-            item.addEventListener('click', function() {
-                navItems.forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-    });
-
-    // Gestion des modals
-    let currentFournisseurId = null;
-
-    function openEditModal(fournisseur) {
-        console.log("=== OUVERTURE MODAL MODIFICATION ===");
-        console.log("📋 Données fournisseur:", fournisseur);
-        
-        currentFournisseurId = fournisseur.id_fournisseur;
-        
-        const form = document.getElementById('editForm');
-        
-        // TEST : Essayez les deux formats
-        const action1 = `/fournisseurs/modifier/${fournisseur.id_fournisseur}`;
-        const action2 = `/fournisseurs/${fournisseur.id_fournisseur}/modifier`;
-        
-        console.log("🔄 Action format 1:", action1);
-        console.log("🔄 Action format 2:", action2);
-        
-        // Utilisez le format qui correspond à vos routes
-        form.action = action1; // ou action2 selon votre route
-        
-        console.log("✅ Action définie:", form.action);
-        
-        // Remplir les champs
-        form.nom.value = fournisseur.nom || '';
-        form.telephone.value = fournisseur.telephone || '';
-        form.email.value = fournisseur.email || '';
-        form.pays.value = fournisseur.pays || '';
-        
-        console.log("✅ Champs remplis");
-        document.getElementById('editModal').style.display = 'block';
-        console.log("✅ Modal affiché");
-    }
-
+    // Fermer le modal de modification
     function closeEditModal() {
-        document.getElementById('editModal').style.display = 'none';
-        currentFournisseurId = null;
+        editModal.style.display = 'none';
     }
+    // Le bouton "Annuler" dans le modal de modification
+    editModal.querySelector('.btn-secondary').addEventListener('click', closeEditModal);
 
-    function openDeleteModal(id, nom) {
-        console.log("🗑️ Ouverture modal suppression pour:", id, nom);
-        
-        currentFournisseurId = id;
-        
-        document.getElementById('deleteModalText').innerHTML = 
-            `Êtes-vous sûr de vouloir supprimer le fournisseur <strong>"${nom}"</strong> ?<br><br>
-             Cette action est irréversible.`;
-        
-        const form = document.getElementById('deleteForm');
-        form.action = `/fournisseurs/supprimer/${id}`;
-        
-        document.getElementById('deleteModal').style.display = 'block';
-    }
 
+    // --- Gestion du Modal de Suppression ---
+
+    // Ouvrir le modal de suppression
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const nom = this.getAttribute('data-nom');
+            
+            // Mettre à jour le texte et l'action du formulaire
+            deleteModalText.innerHTML = `Êtes-vous sûr de vouloir supprimer le fournisseur <strong>"${nom}"</strong> ?<br><br>Cette action est irréversible.`;
+            deleteForm.action = `/fournisseurs/supprimer/${id}?_method=DELETE`;
+            
+            // Afficher le modal
+            deleteModal.style.display = 'block';
+        });
+    });
+    
+    // Fermer le modal de suppression
     function closeDeleteModal() {
-        document.getElementById('deleteModal').style.display = 'none';
-        currentFournisseurId = null;
+        deleteModal.style.display = 'none';
     }
+    // Le bouton "Annuler" dans le modal de suppression
+    deleteModal.querySelector('.btn-secondary').addEventListener('click', closeDeleteModal);
 
-    // Fermer les modals en cliquant en dehors
-    window.onclick = function(event) {
-        const editModal = document.getElementById('editModal');
-        const deleteModal = document.getElementById('deleteModal');
-        
-        if (event.target === editModal) closeEditModal();
-        if (event.target === deleteModal) closeDeleteModal();
-    }
 
-    // Confirmation pour la suppression
-    document.getElementById('deleteForm').addEventListener('submit', function(e) {
-        const confirmation = confirm('Êtes-vous ABSOLUMENT SÛR de vouloir supprimer ce fournisseur ?');
-        if (!confirmation) {
-            e.preventDefault();
+    // --- Gestion Générale des Modals ---
+
+    // Fermer les modals en cliquant en dehors de leur contenu
+    window.addEventListener('click', function(event) {
+        if (event.target === editModal) {
+            closeEditModal();
+        }
+        if (event.target === deleteModal) {
             closeDeleteModal();
         }
     });
 
-    // Ajoutez aussi un listener pour le submit du formulaire
-    document.getElementById('editForm').addEventListener('submit', function(e) {
-        console.log("=== SUBMIT FORMULAIRE MODIFICATION ===");
-        console.log("📤 Action:", this.action);
-        console.log("📦 Données envoyées:", {
-            nom: this.nom.value,
-            telephone: this.telephone.value,
-            email: this.email.value,
-            pays: this.pays.value
+    // Correction pour la route de suppression avec method-override
+    // Le formulaire POST simple est suffisant si method-override est bien configuré
+    // J'ai ajouté `?_method=DELETE` à l'action du formulaire de suppression
+    // pour être compatible avec la configuration de `app.js` que j'ai faite pour les clients.
+    // Je vais vérifier si la route pour les fournisseurs est bien en DELETE ou en POST.
+    // D'après le fichier routes/fournisseurs.js, c'est un POST. Donc je vais ajuster.
+    
+    const deleteRouteIsPost = true; // Basé sur le fichier de routes
+    
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const nom = this.getAttribute('data-nom');
+            
+            deleteModalText.innerHTML = `Êtes-vous sûr de vouloir supprimer le fournisseur <strong>"${nom}"</strong> ?<br><br>Cette action est irréversible.`;
+            
+            if(deleteRouteIsPost) {
+                 deleteForm.action = `/fournisseurs/supprimer/${id}`;
+                 // Assurez-vous que la méthode est POST et qu'il n'y a pas de _method=DELETE si la route est POST
+                 const methodOverrideInput = deleteForm.querySelector('input[name="_method"]');
+                 if(methodOverrideInput) methodOverrideInput.remove();
+            } else {
+                 deleteForm.action = `/fournisseurs/supprimer/${id}?_method=DELETE`;
+            }
+            
+            deleteModal.style.display = 'block';
         });
-        console.log("✅ Formulaire soumis");
     });
 
-  </script>
+});
+</script>
 </body>
 </html>

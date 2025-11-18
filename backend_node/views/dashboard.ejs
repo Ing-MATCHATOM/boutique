@@ -374,6 +374,32 @@
       </a>
     </div>
 
+    <!-- NOUVEAU: Section Mouvements de Stock -->
+    <div class="nav-section">
+      <h2>Mouvements de Stock</h2>
+      <a href="/produits/mouvements/entrees" class="nav-item">
+        <span class="nav-icon">📥</span>
+        <span>Liste des Entrées</span>
+      </a>
+      <a href="/produits/mouvements/sorties" class="nav-item">
+        <span class="nav-icon">📤</span>
+        <span>Liste des Sorties</span>
+      </a>
+    </div>
+
+    <!-- NOUVEAU: Section Ventes -->
+    <div class="nav-section">
+      <h2>Ventes</h2>
+      <a href="/ventes" class="nav-item">
+        <span class="nav-icon">🛒</span>
+        <span>Liste des Ventes</span>
+      </a>
+      <a href="/ventes/nouveau" class="nav-item">
+        <span class="nav-icon">➕</span>
+        <span>Nouvelle Vente</span>
+      </a>
+    </div>
+
     </div>
   </div>
   
@@ -549,22 +575,10 @@
           return;
         }
 
-        // Préparer les labels (mois)
-        const labels = data.ventes && data.ventes.length > 0 
-          ? data.ventes.map(item => {
-              const [year, month] = item.mois.split('-');
-              return `${month}/${year}`;
-            })
-          : ['01/2024', '02/2024', '03/2024', '04/2024', '05/2024', '06/2024'];
-
-        // Préparer les données
-        const ventesData = data.ventes && data.ventes.length > 0 
-          ? data.ventes.map(item => item.total_ventes || 0)
-          : [0, 0, 0, 0, 0, 0];
-
-        const entreesData = data.entrees && data.entrees.length > 0
-          ? data.entrees.map(item => item.total_entrees || 0)
-          : [0, 0, 0, 0, 0, 0];
+        // Les données sont maintenant préparées par le backend
+        const labels = data.labels || [];
+        const ventesData = data.ventes || [];
+        const entreesData = data.entrees || [];
 
         new Chart(ctx.getContext('2d'), {
           type: 'line',
@@ -580,10 +594,10 @@
                 fill: true
               },
               {
-                label: 'Sorties Stock',
+                label: 'Ventes', // CORRIGÉ: Le label est plus précis
                 data: ventesData,
-                borderColor: '#e74c3c',
-                backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                borderColor: '#2ecc71', // Changé en vert pour les ventes
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
                 tension: 0.4,
                 fill: true
               }

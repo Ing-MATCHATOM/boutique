@@ -167,7 +167,82 @@ export async function getMouvementsByProduit(produitId) {
     );
     return rows;
   } catch (error) {
-    console.error("❌ Erreur récupération mouvements produit:", error);
-    return [];
-  }
-}
+        console.error("❌ Erreur récupération mouvements produit:", error);
+        return [];
+      }
+    }
+    
+    // --- NOUVEAU : Récupérer un mouvement par ID ---
+    export async function getMouvementById(id) {
+      const [rows] = await pool.execute(
+        "SELECT * FROM mouvement_stock WHERE id_mouvement = ?",
+        [id]
+      );
+      return rows[0];
+    }
+    
+    // --- NOUVEAU : Modifier un mouvement ---
+    export async function updateMouvement(id, data) {
+      const { quantite, raison, notes } = data;
+      // On récupère l'ancien mouvement pour calculer la différence de stock
+      const oldMouvement = await getMouvementById(id);
+      
+      await pool.execute(
+        "UPDATE mouvement_stock SET quantite = ?, raison = ?, notes = ? WHERE id_mouvement = ?",
+        [quantite, raison, notes, id]
+      );
+      return oldMouvement; // Retourne l'ancien pour l'ajustement du stock
+    }
+    
+    // --- NOUVEAU : Supprimer un mouvement ---
+    export async function deleteMouvement(id) {
+      // On récupère le mouvement avant de le supprimer pour l'ajustement du stock
+      const mouvement = await getMouvementById(id);
+      if (!mouvement) throw new Error("Mouvement non trouvé");
+    
+      await pool.execute("DELETE FROM mouvement_stock WHERE id_mouvement = ?", [id]);
+      return mouvement; // Retourne le mouvement supprimé
+    }
+    
+    // --- NOUVEAU : Récupérer les mouvements avec filtres ---
+    export async function getMouvementsFiltered(options = {}) {
+      const { type, produit_id, date_start, date_end } = options;
+    
+      let query = `
+        SELECT m.*, p.nom as produit_nom 
+        FROM mouvement_stock m 
+        JOIN produit p ON m.produit_id = p.id_produit
+      `;
+      const params = [];
+      const whereClauses = [];
+    
+      if (type) {
+        whereClauses.push("m.type = ?");
+        params.push(type);
+      }
+      if (produit_id) {
+        whereClauses.push("m.produit_id = ?");
+        params.push(produit_id);
+      }
+      if (date_start) {
+        whereClauses.push("m.date_mouvement >= ?");
+        params.push(date_start);
+      }
+      if (date_end) {
+        // Ajoute 1 jour pour inclure toute la journée de la date de fin
+        const endDate = new Date(date_end);
+        endDate.setDate(endDate.getDate() + 1);
+        whereClauses.push("m.date_mouvement < ?");
+        params.push(endDate);
+      }
+    
+      if (whereClauses.length > 0) {
+        query += " WHERE " + whereClauses.join(" AND ");
+      }
+    
+      query += " ORDER BY m.date_mouvement DESC";
+    
+      const [rows] = await pool.execute(query, params);
+      return rows;
+    }
+    

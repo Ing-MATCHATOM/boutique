@@ -389,10 +389,10 @@
         <!-- Informations fournisseur -->
         <div class="form-group">
           <label for="fournisseur_nom" class="required">Fournisseur :</label>
-          <select id="fournisseur_id" name="fournisseur_id" required>
+          <select id="fournisseur_nom" name="fournisseur_nom" required>
   <option value="">Sélectionnez un fournisseur</option>
   <% fournisseurs.forEach(f => { %>
-    <option value="<%= f.id_fournisseur %>">
+    <option value="<%= f.nom %>">
       <%= f.nom %> - <%= f.pays || "N/A" %> (<%= f.telephone || "pas de contact" %>)
     </option>
   <% }) %>

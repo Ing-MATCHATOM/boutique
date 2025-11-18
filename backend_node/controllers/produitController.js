@@ -10,7 +10,11 @@ import {
   updateStock,
   createMouvementStock,
   getMouvementsByProduit,
-  getMouvementsStock
+  getMouvementsStock,
+  getMouvementById,
+  updateMouvement,
+  deleteMouvement,
+  getMouvementsFiltered
 } from "../models/produitModel.js";
 
 
@@ -357,16 +361,261 @@ export async function modifierProduit(req, res) {
 }
 
 // Suppression produit
+
 export async function supprimerProduit(req, res) {
+
   try {
+
     const { id } = req.params;
+
     await deleteProduit(id);
+
     
+
     res.render("successProduit", { 
+
       message: `Produit ${id} supprimé avec succès !` 
+
     });
+
   } catch (error) {
+
     console.error("Erreur suppression produit:", error);
+
     res.status(500).send("Erreur lors de la suppression du produit");
+
   }
+
+}
+
+
+
+/* --- NOUVEAU : GESTION DES LISTES DE MOUVEMENTS --- */
+
+
+
+// Afficher la liste des entrées
+
+export async function listeEntrees(req, res) {
+
+  try {
+
+    const { produit_id, date_start, date_end } = req.query;
+
+    const mouvements = await getMouvementsFiltered({ 
+
+      type: 'entree', 
+
+      produit_id, 
+
+      date_start, 
+
+      date_end 
+
+    });
+
+    const produits = await getAllProduits();
+
+    res.render('listeMouvements', {
+
+      mouvements,
+
+      produits,
+
+      title: "Liste des Entrées de Stock",
+
+      type: 'entree',
+
+      filters: req.query
+
+    });
+
+  } catch (error) {
+
+    console.error("Erreur liste entrées:", error);
+
+    res.status(500).send("Erreur lors de la récupération des entrées");
+
+  }
+
+}
+
+
+
+// Afficher la liste des sorties
+
+export async function listeSorties(req, res) {
+
+  try {
+
+    const { produit_id, date_start, date_end } = req.query;
+
+    const mouvements = await getMouvementsFiltered({ 
+
+      type: 'sortie', 
+
+      produit_id, 
+
+      date_start, 
+
+      date_end 
+
+    });
+
+    const produits = await getAllProduits();
+
+    res.render('listeMouvements', {
+
+      mouvements,
+
+      produits,
+
+      title: "Liste des Sorties de Stock",
+
+      type: 'sortie',
+
+      filters: req.query
+
+    });
+
+  } catch (error) {
+
+    console.error("Erreur liste sorties:", error);
+
+    res.status(500).send("Erreur lors de la récupération des sorties");
+
+  }
+
+}
+
+
+
+// Afficher le formulaire de modification d'un mouvement
+
+export async function showModifierMouvement(req, res) {
+
+  try {
+
+    const { id } = req.params;
+
+    const mouvement = await getMouvementById(id);
+
+    if (!mouvement) {
+
+      return res.status(404).send("Mouvement non trouvé");
+
+    }
+
+    res.render('editMouvement', { mouvement, title: "Modifier un Mouvement" });
+
+  } catch (error) {
+
+    console.error("Erreur affichage modif mouvement:", error);
+
+    res.status(500).send("Erreur lors de l'affichage du formulaire");
+
+  }
+
+}
+
+
+
+// Traiter la modification d'un mouvement
+
+export async function modifierMouvement(req, res) {
+
+  try {
+
+    const { id } = req.params;
+
+    const { quantite, raison, notes } = req.body;
+
+
+
+    const oldMouvement = await updateMouvement(id, { quantite, raison, notes });
+
+    const produit = await getProduitById(oldMouvement.produit_id);
+
+
+
+    const quantiteDiff = parseInt(quantite) - oldMouvement.quantite;
+
+    
+
+    let nouveauStock;
+
+    if (oldMouvement.type === 'entree') {
+
+      nouveauStock = produit.quantite_stock + quantiteDiff;
+
+    } else { // 'sortie'
+
+      nouveauStock = produit.quantite_stock - quantiteDiff;
+
+    }
+
+
+
+    await updateStock(oldMouvement.produit_id, nouveauStock);
+
+
+
+    res.redirect(`/produits/mouvements/${oldMouvement.type}s`);
+
+  } catch (error) {
+
+    console.error("Erreur modif mouvement:", error);
+
+    res.status(500).send("Erreur lors de la modification du mouvement");
+
+  }
+
+}
+
+
+
+// Supprimer un mouvement
+
+export async function supprimerMouvement(req, res) {
+
+  try {
+
+    const { id } = req.params;
+
+    const mouvementSupprime = await deleteMouvement(id);
+
+    
+
+    const produit = await getProduitById(mouvementSupprime.produit_id);
+
+    
+
+    let nouveauStock;
+
+    if (mouvementSupprime.type === 'entree') {
+
+      nouveauStock = produit.quantite_stock - mouvementSupprime.quantite;
+
+    } else { // 'sortie'
+
+      nouveauStock = produit.quantite_stock + mouvementSupprime.quantite;
+
+    }
+
+
+
+    await updateStock(mouvementSupprime.produit_id, nouveauStock);
+
+
+
+    res.redirect(`/produits/mouvements/${mouvementSupprime.type}s`);
+
+  } catch (error) {
+
+    console.error("Erreur suppression mouvement:", error);
+
+    res.status(500).send("Erreur lors de la suppression du mouvement");
+
+  }
+
 }

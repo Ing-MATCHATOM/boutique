@@ -2,6 +2,7 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from 'url';
+import methodOverride from 'method-override';
 import clientsRoutes from "./routes/clients.js";
 import fournisseursRoutes from "./routes/fournisseurs.js";
 import produitsRoutes from "./routes/produits.js";
@@ -19,6 +20,7 @@ const __dirname = path.dirname(__filename);
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(methodOverride('_method'));
 
 // Servir les fichiers statiques
 app.use(express.static(path.join(__dirname, 'public')));
