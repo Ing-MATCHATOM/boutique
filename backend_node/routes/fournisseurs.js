@@ -11,13 +11,15 @@ import {
 const router = express.Router();
 
 // Routes pour les fournisseurs
-router.get("/", listeFournisseurs); // Devient: GET /fournisseurs
-router.get("/inscription", (req, res) => { // Devient: GET /fournisseurs/inscription
+router.get("/", listeFournisseurs);
+router.get("/inscription", (req, res) => {
   res.render("inscriptionFournisseur");
 });
-router.post("/inscription", inscriptionFournisseur); // Devient: POST /fournisseurs/inscription
-router.get("/:id", detailsFournisseur); // Devient: GET /fournisseurs/:id
-router.put("/:id", modifierFournisseur); // Devient: PUT /fournisseurs/:id
-router.delete("/:id", supprimerFournisseur); // Devient: DELETE /fournisseurs/:id
+router.post("/inscription", inscriptionFournisseur);
+router.get("/:id", detailsFournisseur);
+
+// ⭐ CORRECTION : Utiliser le même format
+router.post("/modifier/:id", modifierFournisseur);      // POST /fournisseurs/modifier/123
+router.post("/supprimer/:id", supprimerFournisseur);    // POST /fournisseurs/supprimer/123
 
 export default router;

@@ -322,27 +322,37 @@ export async function ficheProduit(req, res) {
   }
 }
 
-// Modification produit
+// Modification produit - VERSION CORRIGÉE
 export async function modifierProduit(req, res) {
   try {
     const { id } = req.params;
     const { nom, description, prix_achat, prix_vente, quantite_stock, seuil_alerte } = req.body;
     
+    console.log("📝 Données reçues pour modification:", req.body); // Debug
+    
+    // Validation basique
+    if (!nom || !prix_achat || !prix_vente) {
+      return res.status(400).send("Nom, prix d'achat et prix de vente sont obligatoires");
+    }
+    
     await updateProduit(id, { 
-      nom, 
-      description, 
-      prix_achat, 
-      prix_vente, 
-      quantite_stock, 
-      seuil_alerte 
+      nom: nom.trim(),
+      description: description?.trim() || '',
+      prix_achat: parseFloat(prix_achat),
+      prix_vente: parseFloat(prix_vente),
+      quantite_stock: parseInt(quantite_stock) || 0,
+      seuil_alerte: parseInt(seuil_alerte) || 5
     });
     
-    res.render("successProduit", { 
-      message: `Produit ${id} modifié avec succès !` 
-    });
+    console.log("✅ Produit modifié avec succès, ID:", id);
+    
+    // Redirection vers la fiche produit mise à jour
+    res.redirect(`/produits/${id}`);
   } catch (error) {
-    console.error("Erreur modification produit:", error);
-    res.status(500).send("Erreur lors de la modification du produit");
+    console.error("❌ Erreur modification produit:", error);
+    res.status(500).render("error", {
+      message: "Erreur lors de la modification du produit: " + error.message
+    });
   }
 }
 

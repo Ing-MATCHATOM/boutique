@@ -389,14 +389,14 @@
         <!-- Informations fournisseur -->
         <div class="form-group">
           <label for="fournisseur_nom" class="required">Fournisseur :</label>
-          <input type="text" id="fournisseur_nom" name="fournisseur_nom" required 
-                 placeholder="Ex: TechDistrib SARL" list="fournisseurs-list">
-          <datalist id="fournisseurs-list">
-            <option value="TechDistrib">
-            <option value="GlobalElectro">
-            <option value="QualityParts">
-            <option value="ElectroMarket">
-          </datalist>
+          <select id="fournisseur_id" name="fournisseur_id" required>
+  <option value="">Sélectionnez un fournisseur</option>
+  <% fournisseurs.forEach(f => { %>
+    <option value="<%= f.id_fournisseur %>">
+      <%= f.nom %> - <%= f.pays || "N/A" %> (<%= f.telephone || "pas de contact" %>)
+    </option>
+  <% }) %>
+</select>
           <small style="color: #666; margin-top: 5px; display: block;">
             Si le fournisseur n'existe pas, <a href="/fournisseurs/inscription" style="color: var(--primary-color);">créez-le d'abord</a>
           </small>

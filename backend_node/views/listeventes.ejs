@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Liste des ventes</title>
+<style>
+  table { width:100%; border-collapse: collapse; margin-top: 12px; }
+  th, td { border:1px solid #ddd; padding: 8px; text-align:left; }
+  .text-right { text-align:right; }
+  input { padding:4px 6px; }
+  .btn { padding:4px 8px; cursor:pointer; margin-right:4px; }
+  .btn-primary { background:#1a73e8; color:white; border:none; }
+  .btn-danger { background:#e53935; color:white; border:none; }
+</style>
+</head>
+<body>
+  <h1>Liste des ventes</h1>
+
+  <form method="GET" action="/ventes">
+    <input type="text" name="client" placeholder="Filtrer par client" value="<%= filterName %>">
+    <button type="submit" class="btn btn-primary">Filtrer</button>
+    <a href="/ventes" class="btn">Réinitialiser</a>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Client</th>
+        <th>Date</th>
+        <th class="text-right">Total TTC</th>
+        <th class="text-right">Montant payé</th>
+        <th class="text-right">Reste</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% ventes.forEach(v => { %>
+        <tr>
+          <td><%= v.id_vente %></td>
+          <td><%= v.client_nom %></td>
+          <td><%= new Date(v.date_vente).toLocaleString() %></td>
+          <td class="text-right"><%= v.total_ttc.toFixed(2) %></td>
+          <td class="text-right"><%= v.montant_paye.toFixed(2) %></td>
+          <td class="text-right"><%= v.reste.toFixed(2) %></td>
+          <td>
+            <a href="/ventes/<%= v.id_vente %>" class="btn btn-primary">Voir</a>
+            <form action="/ventes/<%= v.id_vente %>/delete" method="POST" style="display:inline">
+              <button type="submit" class="btn btn-danger" onclick="return confirm('Supprimer cette vente ?')">Suppr</button>
+            </form>
+            <a href="/ventes/<%= v.id_vente %>/paiement" class="btn btn-primary">Ajouter paiement</a>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="5" class="text-right">Total restes :</th>
+        <th class="text-right"><%= totalRestes.toFixed(2) %></th>
+        <th></th>
+      </tr>
+    </tfoot>
+  </table>
+</body>
+</html>

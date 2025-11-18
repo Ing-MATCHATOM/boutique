@@ -36,5 +36,6 @@ router.get("/:id", ficheProduit);
 router.get("/:id/historique", historiqueProduit);
 router.put("/:id", modifierProduit);
 router.delete("/:id", supprimerProduit);
-
+router.post("/modifier/:id", modifierProduit);
+router.post("/supprimer/:id", supprimerProduit);
 export default router;

@@ -58,32 +58,44 @@ export async function detailsFournisseur(req, res) {
   }
 }
 
-// Modification d'un fournisseur
+// Modification d'un fournisseur - VERSION AVEC DEBUG
 export async function modifierFournisseur(req, res) {
   try {
+    console.log("🔍 MODIFICATION - Headers:", req.headers['content-type']);
+    console.log("📦 MODIFICATION - Body:", req.body);
+    console.log("🆔 MODIFICATION - ID:", req.params.id);
+    
     const { id } = req.params;
     const { nom, telephone, email, pays } = req.body;
     
+    // Validation
+    if (!nom || !telephone || !pays) {
+      console.log("❌ Données manquantes");
+      return res.status(400).send("Nom, téléphone et pays obligatoires !");
+    }
+
+    console.log("✅ Données valides, appel au modèle...");
+    
     await updateFournisseur(id, { nom, telephone, email, pays });
     
-    res.render("successFournisseur", { 
-      message: `Fournisseur ${id} modifié avec succès !` 
-    });
+    console.log("✅ Fournisseur modifié avec succès");
+    
+    // Redirection vers la liste après modification
+    res.redirect("/fournisseurs");
   } catch (error) {
-    console.error("Erreur modification:", error);
+    console.error("❌ Erreur modification:", error);
     res.status(500).send("Erreur lors de la modification du fournisseur: " + error.message);
   }
 }
 
-// Suppression d'un fournisseur
+// Suppression d'un fournisseur - VERSION CORRIGÉE
 export async function supprimerFournisseur(req, res) {
   try {
     const { id } = req.params;
     await deleteFournisseur(id);
     
-    res.render("successFournisseur", { 
-      message: `Fournisseur ${id} supprimé avec succès !` 
-    });
+    // Redirection vers la liste après suppression
+    res.redirect("/fournisseurs");
   } catch (error) {
     console.error("Erreur suppression:", error);
     res.status(500).send("Erreur lors de la suppression du fournisseur: " + error.message);

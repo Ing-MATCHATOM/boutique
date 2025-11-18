@@ -30,14 +30,30 @@ export async function getFournisseurById(id) {
   return rows[0];
 }
 
-// Modifier un fournisseur
+// models/fournisseurModel.js
+
+// Modifier un fournisseur - VERSION AVEC LOGS
 export async function updateFournisseur(id, fournisseurData) {
   const { nom, telephone, email, pays } = fournisseurData;
   
-  await pool.execute(
-    "UPDATE fournisseur SET nom = ?, telephone = ?, email = ?, pays = ? WHERE id_fournisseur = ?",
-    [nom, telephone, email, pays, id]
-  );
+  try {
+    console.log("🔄 updateFournisseur - ID:", id);
+    console.log("📊 Données à mettre à jour:", fournisseurData);
+    
+    const [result] = await pool.execute(
+      `UPDATE fournisseur 
+       SET nom = ?, telephone = ?, email = ?, pays = ? 
+       WHERE id_fournisseur = ?`,
+      [nom, telephone, email, pays, id]
+    );
+    
+    console.log("✅ updateFournisseur - Résultat:", result);
+    console.log("✅ Rows affected:", result.affectedRows);
+    
+  } catch (error) {
+    console.error("❌ ERREUR dans updateFournisseur:", error);
+    throw error;
+  }
 }
 
 // Supprimer un fournisseur

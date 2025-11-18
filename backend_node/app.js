@@ -6,6 +6,8 @@ import clientsRoutes from "./routes/clients.js";
 import fournisseursRoutes from "./routes/fournisseurs.js";
 import produitsRoutes from "./routes/produits.js";
 import dashboardRoutes from "./routes/dashboard.js";
+import ventesRoutes from "./routes/ventes.js";
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,6 +37,7 @@ app.use("/dashboard", dashboardRoutes);
 app.use("/clients", clientsRoutes);
 app.use("/fournisseurs", fournisseursRoutes);
 app.use("/produits", produitsRoutes);
+app.use("/ventes", ventesRoutes);
 
 // Route 404 simple
 app.use((req, res) => {

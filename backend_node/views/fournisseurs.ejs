@@ -143,6 +143,27 @@
       margin-right: 8px;
     }
 
+    .btn-warning {
+      background-color: var(--warning-color);
+    }
+
+    .btn-warning:hover {
+      background-color: #e67e22;
+    }
+
+    .btn-danger {
+      background-color: var(--accent-color);
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.8rem;
+    }
+
     .table-container {
       background-color: white;
       border-radius: var(--border-radius);
@@ -181,6 +202,78 @@
       margin-right: 8px;
     }
 
+    .actions-cell {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    /* Modal de confirmation */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 15% auto;
+      padding: 30px;
+      border-radius: var(--border-radius);
+      width: 90%;
+      max-width: 500px;
+      box-shadow: var(--box-shadow);
+    }
+
+    .modal-title {
+      color: var(--accent-color);
+      margin-bottom: 15px;
+      font-size: 1.3rem;
+    }
+
+    .modal-text {
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    /* Modal de modification */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
     @media (max-width: 768px) {
       body {
         flex-direction: column;
@@ -204,6 +297,19 @@
       .nav-section h2 {
         display: none;
       }
+
+      .actions-cell {
+        flex-direction: column;
+      }
+
+      .modal-content {
+        margin: 20% auto;
+        width: 95%;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
@@ -216,6 +322,10 @@
     
     <div class="nav-section">
       <h2>Navigation</h2>
+      <a href="/" class="nav-item ">
+        <span class="nav-icon">🏠</span>
+        <span>Tableau de Bord</span>
+      </a>
       <a href="/fournisseurs" class="nav-item active">
         <span class="nav-icon">📋</span>
         <span>Liste des Fournisseurs</span>
@@ -249,6 +359,7 @@
             <th>Téléphone</th>
             <th>Email</th>
             <th>Pays</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -275,11 +386,23 @@
                   </span>
                   <%= fournisseur.pays %>
                 </td>
+                <td class="actions-cell">
+                  <button onclick="openEditModal(<%= JSON.stringify(fournisseur).replace(/"/g, '&quot;') %>)" 
+                          class="btn btn-warning btn-small">
+                    <span class="btn-icon">✏️</span>
+                    Modifier
+                  </button>
+                  <button onclick="openDeleteModal(<%= fournisseur.id_fournisseur %>, '<%= fournisseur.nom.replace(/'/g, "\\'") %>')" 
+                          class="btn btn-danger btn-small">
+                    <span class="btn-icon">🗑️</span>
+                    Supprimer
+                  </button>
+                </td>
               </tr>
             <% }) %>
           <% } else { %>
             <tr>
-              <td colspan="5" style="text-align: center; padding: 40px;">
+              <td colspan="6" style="text-align: center; padding: 40px;">
                 Aucun fournisseur trouvé. 
                 <a href="/fournisseurs/inscription" style="color: var(--primary-color); text-decoration: none;">
                   Ajoutez le premier fournisseur
@@ -292,16 +415,205 @@
     </div>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const navItems = document.querySelectorAll('.nav-item');
-      navItems.forEach(item => {
-        item.addEventListener('click', function() {
-          navItems.forEach(i => i.classList.remove('active'));
-          this.classList.add('active');
+  <!-- Modal de modification -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Modifier le fournisseur</h3>
+      
+      <form id="editForm" method="POST">
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input type="text" name="nom" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Téléphone</label>
+          <input type="text" name="telephone" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Pays</label>
+          <select name="pays" class="form-input" required>
+            <option value="">Sélectionnez un pays</option>
+            <option value="France">🇫🇷 France</option>
+            <option value="Belgique">🇧🇪 Belgique</option>
+            <option value="Suisse">🇨🇭 Suisse</option>
+            <option value="Allemagne">🇩🇪 Allemagne</option>
+            <option value="Espagne">🇪🇸 Espagne</option>
+            <option value="Italie">🇮🇹 Italie</option>
+            <option value="Autre">🌍 Autre</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-warning">
+            <span class="btn-icon">💾</span>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmation de suppression -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Confirmer la suppression</h3>
+      <p class="modal-text" id="deleteModalText">
+        <!-- Le texte sera inséré dynamiquement -->
+      </p>
+      <div class="modal-actions">
+        <button onclick="closeDeleteModal()" class="btn btn-secondary">
+          Annuler
+        </button>
+        <form id="deleteForm" method="POST" style="display: inline;">
+          <button type="submit" class="btn btn-danger">
+            <span class="btn-icon">🗑️</span>
+            Supprimer définitivement
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<script>
+    // ⭐ DÉPLACEZ TOUT CE SCRIPT ICI, À LA FIN DU BODY
+    
+    console.log("=== TEST JAVASCRIPT ===");
+    console.log("✅ Le JavaScript est chargé !");
+    console.log("📍 URL actuelle:", window.location.href);
+
+    // Test des fonctions
+    console.log("🔍 Test fonction openEditModal:", typeof openEditModal);
+    console.log("🔍 Test fonction openDeleteModal:", typeof openDeleteModal);
+
+    // Test des boutons
+    const buttons = document.querySelectorAll('button');
+    console.log("🔘 Nombre de boutons trouvés:", buttons.length);
+
+    // Vérifier si les boutons Modifier existent
+    const editButtons = document.querySelectorAll('.btn-warning');
+    console.log("✏️ Boutons Modifier trouvés:", editButtons.length);
+
+    editButtons.forEach((btn, index) => {
+        console.log(`Bouton ${index + 1}:`, btn.textContent);
+        btn.addEventListener('click', function() {
+            console.log("🎯 Bouton cliqué!", this.textContent);
         });
-      });
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("✅ DOM entièrement chargé");
+        
+        const navItems = document.querySelectorAll('.nav-item');
+        console.log("📌 Items de navigation:", navItems.length);
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', function() {
+                navItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    });
+
+    // Gestion des modals
+    let currentFournisseurId = null;
+
+    function openEditModal(fournisseur) {
+        console.log("=== OUVERTURE MODAL MODIFICATION ===");
+        console.log("📋 Données fournisseur:", fournisseur);
+        
+        currentFournisseurId = fournisseur.id_fournisseur;
+        
+        const form = document.getElementById('editForm');
+        
+        // TEST : Essayez les deux formats
+        const action1 = `/fournisseurs/modifier/${fournisseur.id_fournisseur}`;
+        const action2 = `/fournisseurs/${fournisseur.id_fournisseur}/modifier`;
+        
+        console.log("🔄 Action format 1:", action1);
+        console.log("🔄 Action format 2:", action2);
+        
+        // Utilisez le format qui correspond à vos routes
+        form.action = action1; // ou action2 selon votre route
+        
+        console.log("✅ Action définie:", form.action);
+        
+        // Remplir les champs
+        form.nom.value = fournisseur.nom || '';
+        form.telephone.value = fournisseur.telephone || '';
+        form.email.value = fournisseur.email || '';
+        form.pays.value = fournisseur.pays || '';
+        
+        console.log("✅ Champs remplis");
+        document.getElementById('editModal').style.display = 'block';
+        console.log("✅ Modal affiché");
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').style.display = 'none';
+        currentFournisseurId = null;
+    }
+
+    function openDeleteModal(id, nom) {
+        console.log("🗑️ Ouverture modal suppression pour:", id, nom);
+        
+        currentFournisseurId = id;
+        
+        document.getElementById('deleteModalText').innerHTML = 
+            `Êtes-vous sûr de vouloir supprimer le fournisseur <strong>"${nom}"</strong> ?<br><br>
+             Cette action est irréversible.`;
+        
+        const form = document.getElementById('deleteForm');
+        form.action = `/fournisseurs/supprimer/${id}`;
+        
+        document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+        currentFournisseurId = null;
+    }
+
+    // Fermer les modals en cliquant en dehors
+    window.onclick = function(event) {
+        const editModal = document.getElementById('editModal');
+        const deleteModal = document.getElementById('deleteModal');
+        
+        if (event.target === editModal) closeEditModal();
+        if (event.target === deleteModal) closeDeleteModal();
+    }
+
+    // Confirmation pour la suppression
+    document.getElementById('deleteForm').addEventListener('submit', function(e) {
+        const confirmation = confirm('Êtes-vous ABSOLUMENT SÛR de vouloir supprimer ce fournisseur ?');
+        if (!confirmation) {
+            e.preventDefault();
+            closeDeleteModal();
+        }
+    });
+
+    // Ajoutez aussi un listener pour le submit du formulaire
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+        console.log("=== SUBMIT FORMULAIRE MODIFICATION ===");
+        console.log("📤 Action:", this.action);
+        console.log("📦 Données envoyées:", {
+            nom: this.nom.value,
+            telephone: this.telephone.value,
+            email: this.email.value,
+            pays: this.pays.value
+        });
+        console.log("✅ Formulaire soumis");
+    });
+
   </script>
 </body>
 </html>

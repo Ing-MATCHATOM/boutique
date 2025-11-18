@@ -157,6 +157,22 @@
       background-color: #dde4e6;
     }
 
+    .btn-warning {
+      background-color: var(--warning-color);
+    }
+
+    .btn-warning:hover {
+      background-color: #e67e22;
+    }
+
+    .btn-danger {
+      background-color: var(--accent-color);
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+
     .product-card {
       background: white;
       border-radius: var(--border-radius);
@@ -241,6 +257,113 @@
       margin-left: 20px;
     }
 
+    .actions-section {
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid var(--light-color);
+    }
+
+    .actions-title {
+      color: var(--secondary-color);
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .danger-zone {
+      background-color: #fff5f5;
+      border: 1px solid #fed7d7;
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .danger-zone-title {
+      color: var(--accent-color);
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .danger-zone-text {
+      color: var(--dark-color);
+      font-size: 0.9rem;
+      margin-bottom: 15px;
+      opacity: 0.8;
+    }
+
+    /* Modal de modification */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal-content {
+      background-color: white;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: var(--border-radius);
+      width: 90%;
+      max-width: 600px;
+      box-shadow: var(--box-shadow);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      color: var(--secondary-color);
+      margin-bottom: 20px;
+      font-size: 1.5rem;
+    }
+
+    .modal-text {
+      margin-bottom: 25px;
+      line-height: 1.6;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* Formulaire */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--dark-color);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+    }
+
+    .form-textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       body {
@@ -287,6 +410,15 @@
       .action-buttons .btn {
         width: 100%;
         justify-content: center;
+      }
+
+      .modal-content {
+        margin: 10% auto;
+        width: 95%;
+      }
+
+      .modal-actions {
+        flex-direction: column;
       }
     }
 
@@ -402,6 +534,109 @@
           Voir alertes
         </a>
       </div>
+
+      <!-- Section Actions de gestion -->
+      <div class="actions-section">
+        <h3 class="actions-title">Gestion du produit</h3>
+        <div class="action-buttons">
+          <button onclick="openEditModal()" class="btn btn-warning">
+            <span class="btn-icon">✏️</span>
+            Modifier le produit
+          </button>
+          <button onclick="openDeleteModal()" class="btn btn-danger">
+            <span class="btn-icon">🗑️</span>
+            Supprimer le produit
+          </button>
+        </div>
+      </div>
+
+      <!-- Zone de danger -->
+      <div class="danger-zone">
+        <h4 class="danger-zone-title">Zone de danger</h4>
+        <p class="danger-zone-text">
+          ⚠️ La suppression est définitive et ne peut pas être annulée. 
+          Toutes les données associées à ce produit seront perdues.
+        </p>
+        <button onclick="openDeleteModal()" class="btn btn-danger">
+          <span class="btn-icon">🗑️</span>
+          Supprimer définitivement
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de modification -->
+  <div id="editModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Modifier le produit</h3>
+      
+      <form id="editForm" action="/produits/modifier/<%= produit.id_produit %>" method="POST">
+        <div class="form-group">
+          <label class="form-label">Nom du produit</label>
+          <input type="text" name="nom" class="form-input" value="<%= produit.nom %>" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-input form-textarea"><%= produit.description || '' %></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label class="form-label">Prix d'achat (€)</label>
+            <input type="number" step="0.01" name="prix_achat" class="form-input" value="<%= produit.prix_achat %>" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Prix de vente (€)</label>
+            <input type="number" step="0.01" name="prix_vente" class="form-input" value="<%= produit.prix_vente %>" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label class="form-label">Stock actuel</label>
+            <input type="number" name="quantite_stock" class="form-input" value="<%= produit.quantite_stock %>" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Seuil d'alerte</label>
+            <input type="number" name="seuil_alerte" class="form-input" value="<%= produit.seuil_alerte %>" required>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" onclick="closeEditModal()" class="btn btn-secondary">
+            Annuler
+          </button>
+          <button type="submit" class="btn btn-warning">
+            <span class="btn-icon">💾</span>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de confirmation de suppression -->
+  <div id="deleteModal" class="modal">
+    <div class="modal-content">
+      <h3 class="modal-title">Confirmer la suppression</h3>
+      <p class="modal-text">
+        Êtes-vous sûr de vouloir supprimer le produit <strong>"<%= produit.nom %>"</strong> ?<br><br>
+        Cette action est irréversible et supprimera toutes les données associées à ce produit.
+      </p>
+      <div class="modal-actions">
+        <button onclick="closeDeleteModal()" class="btn btn-secondary">
+          Annuler
+        </button>
+        <form id="deleteForm" action="/produits/supprimer/<%= produit.id_produit %>" method="POST" style="display: inline;">
+          <button type="submit" class="btn btn-danger">
+            <span class="btn-icon">🗑️</span>
+            Supprimer définitivement
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 
@@ -414,6 +649,57 @@
           this.classList.add('active');
         });
       });
+    });
+
+    // Gestion des modals
+    function openEditModal() {
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    function closeEditModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    function openDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'block';
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').style.display = 'none';
+    }
+
+    // Fermer les modals en cliquant en dehors
+    window.onclick = function(event) {
+      const editModal = document.getElementById('editModal');
+      const deleteModal = document.getElementById('deleteModal');
+      
+      if (event.target === editModal) {
+        closeEditModal();
+      }
+      if (event.target === deleteModal) {
+        closeDeleteModal();
+      }
+    }
+
+    // Validation du formulaire de modification
+    document.getElementById('editForm').addEventListener('submit', function(e) {
+      const prixAchat = parseFloat(this.prix_achat.value);
+      const prixVente = parseFloat(this.prix_vente.value);
+      
+      if (prixVente < prixAchat) {
+        e.preventDefault();
+        alert('Le prix de vente ne peut pas être inférieur au prix d\'achat !');
+        return false;
+      }
+    });
+
+    // Confirmation pour la suppression
+    document.getElementById('deleteForm').addEventListener('submit', function(e) {
+      const confirmation = confirm('Êtes-vous ABSOLUMENT SÛR de vouloir supprimer ce produit ? Cette action ne peut pas être annulée.');
+      if (!confirmation) {
+        e.preventDefault();
+        closeDeleteModal();
+      }
     });
   </script>
 </body>

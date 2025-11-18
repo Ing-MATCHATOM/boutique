@@ -54,17 +54,17 @@ export async function getProduitById(id) {
   }
 }
 
-// Modifier un produit
+// Modifier un produit - VERSION CORRIGÉE
 export async function updateProduit(id, produitData) {
-  const { nom, description, prix_achat, prix_vente, quantite_stock, seuil_alerte, fournisseur_id } = produitData;
+  const { nom, description, prix_achat, prix_vente, quantite_stock, seuil_alerte } = produitData;
   
   try {
     await pool.execute(
       `UPDATE produit 
        SET nom = ?, description = ?, prix_achat = ?, prix_vente = ?, 
-           quantite_stock = ?, seuil_alerte = ?, fournisseur_id = ? 
+           quantite_stock = ?, seuil_alerte = ?
        WHERE id_produit = ?`,
-      [nom, description, prix_achat, prix_vente, quantite_stock, seuil_alerte, fournisseur_id, id]
+      [nom, description, prix_achat, prix_vente, quantite_stock, seuil_alerte, id]
     );
     console.log("✏️ Produit mis à jour, ID:", id);
   } catch (error) {

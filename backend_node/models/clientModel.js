@@ -16,3 +16,13 @@ export async function getAllClients() {
   const [rows] = await pool.execute("SELECT * FROM client ORDER BY id_client DESC");
   return rows;
 }
+
+// --- Récupérer un client par ID ---
+export async function getClientById(id) {
+  const [rows] = await pool.execute(
+    "SELECT * FROM client WHERE id_client = ?",
+    [id]
+  );
+
+  return rows[0];
+}
