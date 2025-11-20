@@ -48,9 +48,11 @@ export async function addPaiement(paiement) {
   const venteActuelle = ventes[0];
 
   if (venteActuelle) {
-    // 3. Calculer le nouveau montant payé et le reste, en arrondissant à deux décimales
-    const nouveauMontantPaye = parseFloat((venteActuelle.montant_paye + montant).toFixed(2));
-    const nouveauReste = parseFloat((venteActuelle.total_ttc - nouveauMontantPaye).toFixed(2));
+    // 3. Calculer le nouveau montant payé et le reste, en s'assurant que les types sont corrects
+    const montantPayeActuel = parseFloat(venteActuelle.montant_paye) || 0;
+    const montantAjoute = parseFloat(montant) || 0;
+    const nouveauMontantPaye = montantPayeActuel + montantAjoute;
+    const nouveauReste = parseFloat(venteActuelle.total_ttc) - nouveauMontantPaye;
 
     // 4. Mettre à jour la vente
     await pool.execute(

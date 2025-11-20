@@ -400,7 +400,7 @@
                       <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette vente ?')">Suppr</button>
                     </form>
                     <% if (v.reste > 0) { %>
-                      <a href="/ventes/<%= v.id_vente %>/paiement" class="btn btn-primary">Payer</a>
+                      <a href="/ventes/<%= v.id_vente %>" class="btn btn-primary">Payer</a>
                     <% } %>
                   </div>
                 </td>
